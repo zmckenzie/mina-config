@@ -6,7 +6,7 @@ Adds a multi-environment yml configuration file to mina. Environment configurati
 
 Add this line to your application's Gemfile:
 
-    gem 'mina-config'
+    gem 'mina-config', require: false
 
 And then execute:
 
