@@ -40,6 +40,11 @@ task deploy: :environment do
 end
 ```
 
+At the moment the gem requires usage of rvm. Add the following to `config/deploy.rb' with the path to your rvm install:
+```rb
+set :rvm_path, '/usr/local/rvm/scripts/rvm'
+```
+
 Then run the config initializer:
 
 ```shell
