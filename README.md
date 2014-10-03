@@ -2,11 +2,13 @@
 
 Adds a multi-environment yml configuration file to mina. Environment configuration is dynamically created by the definitions in the deploy.yml file.
 
+As of right now the gem does require you to use rvm and have a .ruby-version file.
+
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'mina-config'
+    gem 'mina-config', require: false
 
 And then execute:
 
@@ -36,6 +38,11 @@ desc 'Deploys the current version to the server.'
 task deploy: :environment do
   ...
 end
+```
+
+At the moment the gem requires usage of rvm. Add the following to `config/deploy.rb` with the path to your rvm install:
+```rb
+set :rvm_path, '/usr/local/rvm/scripts/rvm'
 ```
 
 Then run the config initializer:
