@@ -23,7 +23,7 @@ unless environments.nil?
     desc "Set the environment to #{environment}."
     task(environment) do
       set :rails_env, environment
-      set :branch, ENV['branch'] || onfig[rails_env]['branch']
+      set :branch, ENV['branch'] || config[rails_env]['branch']
       set :user, config[rails_env]['user']
       set :domain, config[rails_env]['domain']
       set :app, config[rails_env]['app']
