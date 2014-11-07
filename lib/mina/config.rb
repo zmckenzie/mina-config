@@ -68,7 +68,9 @@ namespace :config do
           common: &common
                 app: #{app_params[:common][:app_name]}
                 repository: #{app_params[:common][:repo]}
-                shared_paths: ['config/database.yml', 'log']"
+                shared_paths: 
+                  - 'config/database.yml'
+                  - 'log'"
 
       app_params.each do |k,v|
         if(k != :common)
