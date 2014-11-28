@@ -34,7 +34,7 @@ unless environments.nil?
 
       set :ruby_version, File.read('.ruby-version')
 
-      invoke :"rvm:use[ruby-#{ruby_version}]"
+      invoke :"rvm:use[#{ruby_version}]"
     end
   end
 
