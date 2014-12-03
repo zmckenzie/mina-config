@@ -4,6 +4,7 @@ require 'yaml'
 require 'mina/rvm'
 require 'active_support/core_ext/hash'
 require 'mina/String'
+require 'pry'
 
 
 default_env = fetch(:default_env, 'staging')
@@ -13,34 +14,64 @@ set :rails_env, ENV['to'] || :staging
 
 unless config.nil?
   envs = []
-  config.each {|k,v| envs << k}
+  config.each { |k, v| envs << k }
 
   set :environments, envs
 end
 
+
+namespace :deploy do
+  desc 'deploy to a cluster of servers'
+  task :cluster do
+
+    config[cluster_key].each do |command|
+      if environments.include? command
+        setup_environment command
+        queue %[echo "Cluster Deploy Called"]
+        invoke :'deploy'
+      else
+        invoke :"#{command}"
+        queue %[echo "Cluster Invoke Called"]
+      end
+
+      top_level
+    end
+  end
+end
+
 unless environments.nil?
   environments.each do |environment|
-    desc "Set the environment to #{environment}."
-    task(environment) do
-      set :rails_env, environment
-      set :branch, ENV['branch'] || config[rails_env]['branch']
-      set :user, config[rails_env]['user']
-      set :domain, config[rails_env]['domain']
-      set :app, config[rails_env]['app']
-      set :repository, config[rails_env]['repository']
-      set :shared_paths, config[rails_env]['shared_paths']
 
-      set :deploy_to, "/srv/app/#{app}"
-
-      set :ruby_version, File.read('.ruby-version')
-
-      invoke :"rvm:use[#{ruby_version}]"
+    if config[environment].is_a? Array
+      task(environment) do
+        set :cluster_key, environment
+      end
+    else
+      desc "Set the environment to #{environment}."
+      task(environment) do
+        setup_environment environment
+      end
     end
   end
 
   unless environments.include?(ARGV.first)
     invoke default_env
   end
+end
+
+
+def setup_environment environment
+
+  set :rails_env, environment
+  set :branch, ENV['branch'] || config[rails_env]['branch']
+  set :user, config[rails_env]['user']
+  set :domain, config[rails_env]['domain']
+  set :app, config[rails_env]['app']
+  set :repository, config[rails_env]['repository']
+  set :shared_paths, config[rails_env]['shared_paths']
+  set :deploy_to, "/srv/app/#{app}"
+  set :ruby_version, File.read('.ruby-version')
+
 end
 
 namespace :config do
@@ -72,8 +103,8 @@ namespace :config do
                   - 'config/database.yml'
                   - 'log'"
 
-      app_params.each do |k,v|
-        if(k != :common)
+      app_params.each do |k, v|
+        if (k != :common)
           deploy_yml += "
           #{k}:
                 <<: *common
