@@ -107,8 +107,8 @@ end
 namespace :database do
   
   task :set_version => :environment do
-    queue "cd #{release_path} && bundle exec rake RAILS_ENV=#{rails_env} mina:db:version > migration_version.txt"
-    queue "cat #{deploy_to}/current/migration_version.txt"
+    queue "cd #{deploy_to!}/#{current_path!}"
+    queue "bundle exec rake RAILS_ENV=#{rails_env} mina:db:version > migration_version.txt"
   end
   
   task :rollback => :environment do
