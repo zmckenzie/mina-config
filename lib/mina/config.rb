@@ -25,17 +25,15 @@ namespace :deploy do
   task :cluster do
 
     config[cluster_key].each do |command|
-      if environments.include? command
-        setup_environment command
-        queue %[echo "Cluster Deploy Called"]
-        invoke :'deploy'
-      else
-        invoke :"#{command}"
-        queue %[echo "Cluster Invoke Called"]
-      end
+        if environments.include? command
+          exec "mina #{command} deploy"
+        else
+          puts %[Environment #{command} not found. Please define it in your deploy.yml.]
+          exit 1
+        end
 
-      top_level
     end
+
   end
 end
 
