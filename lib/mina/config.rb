@@ -4,6 +4,7 @@ require 'yaml'
 require 'mina/rvm'
 require 'active_support/core_ext/hash'
 require 'mina/String'
+require 'pry'
 
 mdefault_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
@@ -107,12 +108,13 @@ end
 namespace :database do
   
   task :set_version => :environment do
-    queue "cd #{deploy_to!}/#{current_path!}"
-    queue "bundle exec rake RAILS_ENV=#{rails_env} mina:db:version > migration_version.txt"
+    queue "cd #{deploy_to}/#{current_path}"
+    queue "#{rails} r 'puts ActiveRecord::Migrator.current_version' > #{deploy_to}/#{current_path}/migration_version.txt"
   end
   
   task :rollback => :environment do
-    
+    queue "cd #{deploy_to}/#{current_path}"
+    queue "#{rake} db:migrate VERSION=`cat migration_version.txt`"
   end
   
 end
