@@ -6,8 +6,7 @@ require 'active_support/core_ext/hash'
 require 'mina/String'
 require 'pry'
 
-
-default_env = fetch(:default_env, 'staging')
+mdefault_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
 set :config, YAML.load(File.open(config_file)).with_indifferent_access if File.exists? config_file
 set :rails_env, ENV['to'] || :staging
@@ -117,4 +116,33 @@ namespace :config do
       end
     end
   end
+  
+  desc "Rolls back the latest release"
+  task :rollback => :environment do
+    queue! %[echo "-----> Rolling back to previous release for instance: #{domain}"]
+
+    # Delete existing sym link and create a new symlink pointing to the previous release
+    queue %[echo -n "-----> Creating new symlink from the previous release: "]
+    queue %[ls "#{deploy_to}/releases" -Art | sort | tail -n 2 | head -n 1]
+    queue! %[ls -Art "#{deploy_to}/releases" | sort | tail -n 2 | head -n 1 | xargs -I active ln -nfs "#{deploy_to}/releases/active" "#{deploy_to}/current"]
+
+    # Remove latest release folder (active release)
+    queue %[echo -n "-----> Deleting active release: "]
+    queue %[ls "#{deploy_to}/releases" -Art | sort | tail -n 1]
+    queue! %[ls "#{deploy_to}/releases" -Art | sort | tail -n 1 | xargs -I active rm -rf "#{deploy_to}/releases/active"]
+  end
+end
+
+namespace :database do
+  
+  task :set_version => :environment do
+    queue "cd #{deploy_to}/#{current_path}"
+    queue "#{rails} r 'puts ActiveRecord::Migrator.current_version' > #{deploy_to}/#{current_path}/migration_version.txt"
+  end
+  
+  task :rollback => :environment do
+    queue "cd #{deploy_to}/#{current_path}"
+    queue "#{rake} db:migrate VERSION=`cat migration_version.txt`"
+  end
+  
 end
