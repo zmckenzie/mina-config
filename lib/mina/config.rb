@@ -44,6 +44,7 @@ end
 def setup_environment environment
 
   set :rails_env, environment
+
   set :branch, ENV['branch'] || config[rails_env]['branch']
   set :user, config[rails_env]['user']
   set :domain, config[rails_env]['domain']
@@ -53,6 +54,12 @@ def setup_environment environment
   set :deploy_to, "/srv/app/#{app}"
   set :ruby_version, File.read('.ruby-version')
   set :port, config[rails_env]['port'] || '22'
+
+  if config[rails_env].has_key? 'env'
+    set :rails_env, config[rails_env]['env']
+  else
+    set :rails_env, environment
+  end
 
   invoke :"rvm:use[#{ruby_version}]"
 end
