@@ -4,12 +4,14 @@ require 'yaml'
 require 'mina/rvm'
 require 'active_support/core_ext/hash'
 require 'mina/String'
+# Default the platform to rails; you can override by including other platform files
+require 'mina/config/rails'
 
 
 default_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
 set :config, YAML.load(File.open(config_file)).with_indifferent_access if File.exists? config_file
-set :rails_env, ENV['to'] || :staging
+set :environment, ENV['to'] || :staging
 
 unless config.nil?
   envs = []
@@ -22,19 +24,19 @@ unless environments.nil?
   environments.each do |environment|
     desc "Set the environment to #{environment}."
     task(environment) do
-      set :rails_env, environment
-      set :branch, ENV['branch'] || config[rails_env]['branch']
-      set :user, config[rails_env]['user']
-      set :domain, config[rails_env]['domain']
-      set :app, config[rails_env]['app']
-      set :repository, config[rails_env]['repository']
-      set :shared_paths, config[rails_env]['shared_paths']
+      set :environment, environment
+      set :branch, ENV['branch'] || config[environment]['branch']
+      set :user, config[environment]['user']
+      set :domain, config[environment]['domain']
+      set :app, config[environment]['app']
+      set :repository, config[environment]['repository']
+      set :shared_paths, config[environment]['shared_paths']
 
       set :deploy_to, "/srv/app/#{app}"
 
-      set :ruby_version, File.read('.ruby-version')
-
-      invoke :"rvm:use[#{ruby_version.chomp}]"
+      # Invoke platform-specific tasks based on the required mina/config/#{platform}.rb file.
+      # The platform defaults to rails.
+      invoke :"mina_config:platform:#{platform}:tasks"
     end
   end
 
