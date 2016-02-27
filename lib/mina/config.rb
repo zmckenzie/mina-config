@@ -54,6 +54,10 @@ def setup_environment environment
   set :deploy_to, "/srv/app/#{app}"
   set :ruby_version, File.read('.ruby-version')
   set :port, config[rails_env]['port'] || '22'
+  
+ 
+  set :start_sidekiq, config[rails_env]['start_sidekiq'] if config[rails_env].has_key? 'start_sidekiq'
+  set :start_rpush, config[rails_env]['start_rpush'] if config[rails_env].has_key? 'start_rpush'
 
   if config[rails_env].has_key? 'env'
     set :rails_env, config[rails_env]['env']
