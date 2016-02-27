@@ -29,6 +29,8 @@ unless environments.nil?
       set :app, config[rails_env]['app']
       set :repository, config[rails_env]['repository']
       set :shared_paths, config[rails_env]['shared_paths']
+      set :start_sidekiq, config[rails_env]['start_sidekiq'] if config[rails_env]['start_sidekiq']
+      set :start_rpush, config[rails_env]['start_rpush']if config[rails_env]['start_rpush']
 
       set :deploy_to, "/srv/app/#{app}"
 
