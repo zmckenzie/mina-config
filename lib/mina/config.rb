@@ -5,6 +5,7 @@ require 'mina/rvm'
 require 'active_support/core_ext/hash'
 require 'mina/String'
 require 'open4'
+require 'open3'
 require 'pry'
 
 default_env = fetch(:default_env, 'staging')
