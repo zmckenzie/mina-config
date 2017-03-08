@@ -2,7 +2,7 @@
 
 Adds a multi-environment yml configuration file to mina. Environment configuration is dynamically created by the definitions in the deploy.yml file.
 
-As of right now the gem does require you to use rvm and have a .ruby-version file.
+As of right now the gem does require you to use rvm and have a .ruby-version file if you are doing a Ruby deployment.
 
 ## Installation
 
