@@ -56,7 +56,7 @@ def setup_environment environment
   set :ruby_version, File.read('.ruby-version')
   set :port, config[rails_env]['port'] || '22'
   
- 
+  set :keep_releases, config[rails_env]['keep_releases'] if config[rails_env].has_key? 'keep_releases'
   set :start_sidekiq, config[rails_env]['start_sidekiq'] if config[rails_env].has_key? 'start_sidekiq'
   set :start_rpush, config[rails_env]['start_rpush'] if config[rails_env].has_key? 'start_rpush'
 
@@ -64,10 +64,6 @@ def setup_environment environment
     set :rails_env, config[rails_env]['env']
   else
     set :rails_env, environment
-  end
-  
-  if config[rails_env].has_key? 'keep_releases'
-    set :keep_releases, config[rails_env]['keep_releases']
   end
 
   invoke :"rvm:use[#{ruby_version}]"
