@@ -65,6 +65,10 @@ def setup_environment environment
   else
     set :rails_env, environment
   end
+  
+  if config[rails_env].has_key? 'keep_releases'
+    set :keep_releases, config[rails_env]['keep_releases']
+  end
 
   invoke :"rvm:use[#{ruby_version}]"
 end
