@@ -1,4 +1,10 @@
+# # String
+
 class String
+
+  # ### dedent
+  # Equally indents strings for writing to a file
+
   def dedent
     lines = split "\n"
     return self if lines.empty?

@@ -10,7 +10,12 @@ require 'pry'
 
 default_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
-set :config, YAML.load(File.open(config_file)).with_indifferent_access if File.exists? config_file
+ruby_version_file = '.ruby-version'
+config = nil
+if File.exists? config_file
+  config = YAML.load(File.open(config_file)).with_indifferent_access 
+  set :config, config
+end
 set :rails_env, ENV['to'] || :staging
 
 unless config.nil?
@@ -23,6 +28,7 @@ end
 
 unless environments.nil?
   environments.each do |environment|
+<<<<<<< HEAD
 
     if config[environment].is_a? Array
       task(environment) do
@@ -32,6 +38,25 @@ unless environments.nil?
       desc "Set the environment to #{environment}."
       task(environment) do
         setup_environment environment
+=======
+    desc "Set the environment to #{environment}."
+    task(environment) do
+      set :rails_env, environment
+      set :branch, ENV['branch'] || config[rails_env]['branch']
+      set :user, config[rails_env]['user']
+      set :domain, config[rails_env]['domain']
+      set :app, config[rails_env]['app']
+      set :repository, config[rails_env]['repository']
+      set :shared_paths, config[rails_env]['shared_paths']
+      set :start_sidekiq, config[rails_env]['start_sidekiq'] if config[rails_env]['start_sidekiq']
+      set :start_rpush, config[rails_env]['start_rpush']if config[rails_env]['start_rpush']
+
+      set :deploy_to, "/srv/app/#{app}"
+
+      if File.exists?(ruby_version_file)
+        set :ruby_version, File.read(ruby_version_file).strip
+        invoke :"rvm:use[#{ruby_version}]"
+>>>>>>> master
       end
     end
   end
