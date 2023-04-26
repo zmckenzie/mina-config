@@ -9,7 +9,11 @@ require 'mina/String'
 default_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
 ruby_version_file = '.ruby-version'
-set :config, YAML.load(File.open(config_file)).with_indifferent_access if File.exists? config_file
+config = nil
+if File.exists? config_file
+  config = YAML.load(File.open(config_file)).with_indifferent_access 
+  set :config, config
+end
 set :rails_env, ENV['to'] || :staging
 
 unless config.nil?
