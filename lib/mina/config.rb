@@ -29,20 +29,20 @@ unless environments.nil?
     desc "Set the environment to #{environment}."
     task(environment) do
       set :rails_env, environment
-      set :branch, ENV['branch'] || config[rails_env]['branch']
-      set :user, config[rails_env]['user']
-      set :domain, config[rails_env]['domain']
-      set :app, config[rails_env]['app']
-      set :repository, config[rails_env]['repository']
-      set :shared_paths, config[rails_env]['shared_paths']
-      set :start_sidekiq, config[rails_env]['start_sidekiq'] if config[rails_env]['start_sidekiq']
-      set :start_rpush, config[rails_env]['start_rpush']if config[rails_env]['start_rpush']
+      set :branch, ENV['branch'] || config[environment]['branch']
+      set :user, config[environment]['user']
+      set :domain, config[environment]['domain']
+      set :app, config[environment]['app']
+      set :repository, config[environment]['repository']
+      set :shared_paths, config[environment]['shared_paths']
+      set :start_sidekiq, config[environment]['start_sidekiq'] if config[environment]['start_sidekiq']
+      set :start_rpush, config[environment]['start_rpush']if config[environment]['start_rpush']
 
       set :deploy_to, "/srv/app/#{app}"
 
       if File.exists?(ruby_version_file)
         set :ruby_version, File.read(ruby_version_file).strip
-        invoke :"rvm:use[#{ruby_version}]"
+        invoke :"rvm:use[#{fetch(:ruby_version)}]"
       end
     end
   end
@@ -53,9 +53,9 @@ unless environments.nil?
 end
 
 
-def setup_environment environment
+def setup_environment rails_env
 
-  set :rails_env, environment
+  set :rails_env, rails_env
 
   set :branch, ENV['branch'] || config[rails_env]['branch']
   set :user, config[rails_env]['user']
@@ -74,10 +74,10 @@ def setup_environment environment
   if config[rails_env].has_key? 'env'
     set :rails_env, config[rails_env]['env']
   else
-    set :rails_env, environment
+    set :rails_env, rails_env
   end
 
-  invoke :"rvm:use[#{ruby_version}]"
+  invoke :"rvm:use[#{fetch(:ruby_version)}]"
 end
 
 namespace :config do
