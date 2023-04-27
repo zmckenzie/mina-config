@@ -47,6 +47,7 @@ unless environments.nil?
     end
   end
 
+  require 'pry';binding.pry
   unless environments.include?(ARGV.first)
     invoke default_env
   end
