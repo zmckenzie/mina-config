@@ -42,7 +42,7 @@ unless environments.nil?
 
       if File.exists?(ruby_version_file)
         set :ruby_version, File.read(ruby_version_file).strip
-        invoke :"rvm:use[#{fetch(:ruby_version)}]"
+        invoke :"rvm:use", fetch(:ruby_version)
       end
     end
   end
@@ -77,7 +77,7 @@ def setup_environment rails_env
     set :rails_env, rails_env
   end
 
-  invoke :"rvm:use[#{fetch(:ruby_version)}]"
+  invoke :"rvm:use", fetch(:ruby_version)
 end
 
 namespace :config do
