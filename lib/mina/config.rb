@@ -38,7 +38,7 @@ unless environments.nil?
       set :start_sidekiq, config[environment]['start_sidekiq'] if config[environment]['start_sidekiq']
       set :start_rpush, config[environment]['start_rpush']if config[environment]['start_rpush']
 
-      set :deploy_to, "/srv/app/#{app}"
+      set :deploy_to, "/srv/app/#{fetch(:app)}"
 
       if File.exists?(ruby_version_file)
         set :ruby_version, File.read(ruby_version_file).strip
