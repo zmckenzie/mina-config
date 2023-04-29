@@ -10,7 +10,6 @@ require 'pry'
 
 default_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
-ruby_version_file = '.ruby-version'
 if File.exists? config_file
   config = YAML.load(File.open(config_file)).with_indifferent_access 
   set :config, config
@@ -26,24 +25,14 @@ end
 
 unless environments.nil?
   environments.each do |environment|
-    desc "Set the environment to #{environment}."
-    task(environment) do
-      set :rails_env, environment
-      set :branch, ENV['branch'] || config[environment]['branch']
-      set :user, config[environment]['user']
-      set :domain, config[environment]['domain']
-      set :app, config[environment]['app']
-      set :repository, config[environment]['repository']
-      set :shared_files, config[environment]['shared_files']
-      set :shared_dirs, config[environment]['shared_dirs'] if config[environment]['shared_dirs']
-      set :start_sidekiq, config[environment]['start_sidekiq'] if config[environment]['start_sidekiq']
-      set :start_rpush, config[environment]['start_rpush']if config[environment]['start_rpush']
-
-      set :deploy_to, "/srv/app/#{fetch(:app)}"
-
-      if File.exists?(ruby_version_file)
-        set :ruby_version, File.read(ruby_version_file).strip
-        invoke :"rvm:use", fetch(:ruby_version)
+    if config[environment].is_a? Array
+      task(environment) do
+        set :cluster_key, environment
+      end
+    else
+      desc "Set the environment to #{environment}."
+      task(environment) do
+        setup_environment environment
       end
     end
   end
@@ -52,7 +41,6 @@ unless environments.nil?
     invoke default_env
   end
 end
-
 
 def setup_environment rails_env
 
@@ -107,8 +95,9 @@ namespace :config do
           common: &common
                 app: #{app_params[:common][:app_name]}
                 repository: #{app_params[:common][:repo]}
-                shared_paths: 
+                shared_files: 
                   - 'config/database.yml'
+                shared_paths:
                   - 'log'"
 
       app_params.each do |k, v|
