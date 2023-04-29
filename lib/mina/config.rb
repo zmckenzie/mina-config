@@ -34,7 +34,8 @@ unless environments.nil?
       set :domain, config[environment]['domain']
       set :app, config[environment]['app']
       set :repository, config[environment]['repository']
-      set :shared_paths, config[environment]['shared_paths']
+      set :shared_files, config[environment]['shared_files']
+      set :shared_dirs, config[environment]['shared_dirs'] if config[environment]['shared_dirs']
       set :start_sidekiq, config[environment]['start_sidekiq'] if config[environment]['start_sidekiq']
       set :start_rpush, config[environment]['start_rpush']if config[environment]['start_rpush']
 
@@ -62,8 +63,9 @@ def setup_environment rails_env
   set :domain, config[rails_env]['domain']
   set :app, config[rails_env]['app']
   set :repository, config[rails_env]['repository']
-  set :shared_paths, config[rails_env]['shared_paths']
-  set :deploy_to, "/srv/app/#{app}"
+  set :shared_files, config[rails_env]['shared_files']
+  set :shared_dirs, config[rails_env]['shared_dirs'] if config[rails_env].has_key? 'shared_dirs'
+  set :deploy_to, "/srv/app/#{fetch(:app)}"
   set :ruby_version, File.read('.ruby-version')
   set :port, config[rails_env]['port'] || '22'
   
