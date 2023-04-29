@@ -34,6 +34,7 @@ unless environments.nil?
       set :domain, config[environment]['domain']
       set :app, config[environment]['app']
       set :repository, config[environment]['repository']
+      require 'pry';binding.pry
       set :shared_files, config[environment]['shared_files']
       set :shared_dirs, config[environment]['shared_dirs'] if config[environment]['shared_dirs']
       set :start_sidekiq, config[environment]['start_sidekiq'] if config[environment]['start_sidekiq']
