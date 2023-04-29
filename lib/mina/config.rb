@@ -121,7 +121,7 @@ end
 namespace :deploy do
   desc 'deploy to a cluster of servers'
   task :cluster do
-    config[cluster_key].each do |env|
+    config[fetch(:cluster_key)].each do |env|
       if environments.include? env
         puts %[Called Deployment for #{env}.]
         Open3.popen3("mina #{env} deploy") do |stdin, stdout, stderr, thread|
@@ -158,7 +158,6 @@ namespace :deploy do
   end
 end
 namespace :database do
-  
   task :set_version => :environment do
     command "cd #{deploy_to}/#{current_path}"
     command "#{rails} r 'puts ActiveRecord::Migrator.current_version' > #{deploy_to}/#{current_path}/migration_version.txt"
