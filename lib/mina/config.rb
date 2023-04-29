@@ -43,7 +43,7 @@ unless environments.nil?
 end
 
 def setup_environment rails_env
-
+  config = fetch(:config)
   set :rails_env, rails_env
 
   set :branch, ENV['branch'] || config[rails_env]['branch']
