@@ -10,20 +10,21 @@ require 'pry'
 
 default_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
-set :config, YAML.load(File.open(config_file)).with_indifferent_access if File.exists? config_file
+if File.exists? config_file
+  config = YAML.load(File.open(config_file)).with_indifferent_access 
+  set :config, config
+end
 set :rails_env, ENV['to'] || :staging
 
 unless config.nil?
-  envs = []
-  config.each { |k, v| envs << k }
+  environments = []
+  config.each { |k, v| environments << k }
 
-  set :environments, envs
+  set :environments, environments
 end
-
 
 unless environments.nil?
   environments.each do |environment|
-
     if config[environment].is_a? Array
       task(environment) do
         set :cluster_key, environment
@@ -36,23 +37,23 @@ unless environments.nil?
     end
   end
 
-  unless environments.include?(ARGV.first)
+  if !environments.include?(ARGV.first) && environments.include?(default_env)
     invoke default_env
   end
 end
 
-
-def setup_environment environment
-
-  set :rails_env, environment
+def setup_environment rails_env
+  config = fetch(:config)
+  set :rails_env, rails_env
 
   set :branch, ENV['branch'] || config[rails_env]['branch']
   set :user, config[rails_env]['user']
   set :domain, config[rails_env]['domain']
   set :app, config[rails_env]['app']
   set :repository, config[rails_env]['repository']
-  set :shared_paths, config[rails_env]['shared_paths']
-  set :deploy_to, "/srv/app/#{app}"
+  set :shared_files, config[rails_env]['shared_files']
+  set :shared_dirs, config[rails_env]['shared_dirs'] if config[rails_env].has_key? 'shared_dirs'
+  set :deploy_to, "/srv/app/#{fetch(:app)}"
   set :ruby_version, File.read('.ruby-version')
   set :port, config[rails_env]['port'] || '22'
   
@@ -63,10 +64,10 @@ def setup_environment environment
   if config[rails_env].has_key? 'env'
     set :rails_env, config[rails_env]['env']
   else
-    set :rails_env, environment
+    set :rails_env, rails_env
   end
 
-  invoke :"rvm:use[#{ruby_version}]"
+  invoke :"rvm:use", fetch(:ruby_version)
 end
 
 namespace :config do
@@ -94,8 +95,9 @@ namespace :config do
           common: &common
                 app: #{app_params[:common][:app_name]}
                 repository: #{app_params[:common][:repo]}
-                shared_paths: 
+                shared_files: 
                   - 'config/database.yml'
+                shared_paths:
                   - 'log'"
 
       app_params.each do |k, v|
@@ -119,7 +121,7 @@ end
 namespace :deploy do
   desc 'deploy to a cluster of servers'
   task :cluster do
-    config[cluster_key].each do |env|
+    config[fetch(:cluster_key)].each do |env|
       if environments.include? env
         puts %[Called Deployment for #{env}.]
         Open3.popen3("mina #{env} deploy") do |stdin, stdout, stderr, thread|
@@ -142,29 +144,27 @@ namespace :deploy do
 
   desc "Rolls back the latest release"
   task :rollback => :environment do
-    queue! %[echo "-----> Rolling back to previous release for instance: #{domain}"]
+    comment %[echo "-----> Rolling back to previous release for instance: #{domain}"]
 
     # Delete existing sym link and create a new symlink pointing to the previous release
-    queue %[echo -n "-----> Creating new symlink from the previous release: "]
-    queue %[ls "#{deploy_to}/releases" -Art | sort | tail -n 2 | head -n 1]
-    queue! %[ls -Art "#{deploy_to}/releases" | sort | tail -n 2 | head -n 1 | xargs -I active ln -nfs "#{deploy_to}/releases/active" "#{deploy_to}/current"]
+    comment %[echo -n "-----> Creating new symlink from the previous release: "]
+    command %[ls "#{deploy_to}/releases" -Art | sort | tail -n 2 | head -n 1]
+    command %[ls -Art "#{deploy_to}/releases" | sort | tail -n 2 | head -n 1 | xargs -I active ln -nfs "#{deploy_to}/releases/active" "#{deploy_to}/current"]
 
     # Remove latest release folder (active release)
-    queue %[echo -n "-----> Deleting active release: "]
-    queue %[ls "#{deploy_to}/releases" -Art | sort | tail -n 1]
-    queue! %[ls "#{deploy_to}/releases" -Art | sort | tail -n 1 | xargs -I active rm -rf "#{deploy_to}/releases/active"]
+    comment %[echo -n "-----> Deleting active release: "]
+    command %[ls "#{deploy_to}/releases" -Art | sort | tail -n 1]
+    command %[ls "#{deploy_to}/releases" -Art | sort | tail -n 1 | xargs -I active rm -rf "#{deploy_to}/releases/active"]
   end
 end
 namespace :database do
-  
   task :set_version => :environment do
-    queue "cd #{deploy_to}/#{current_path}"
-    queue "#{rails} r 'puts ActiveRecord::Migrator.current_version' > #{deploy_to}/#{current_path}/migration_version.txt"
+    command "cd #{deploy_to}/#{current_path}"
+    command "#{rails} r 'puts ActiveRecord::Migrator.current_version' > #{deploy_to}/#{current_path}/migration_version.txt"
   end
   
   task :rollback => :environment do
-    queue "cd #{deploy_to}/#{current_path}"
-    queue "#{rake} db:migrate VERSION=`cat migration_version.txt`"
+    command "cd #{deploy_to}/#{current_path}"
+    command "#{rake} db:migrate VERSION=`cat migration_version.txt`"
   end
-  
 end
