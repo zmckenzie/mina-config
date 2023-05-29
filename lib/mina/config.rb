@@ -10,7 +10,7 @@ require 'pry'
 
 default_env = fetch(:default_env, 'staging')
 config_file = 'config/deploy.yml'
-if File.exists? config_file
+if File.exist? config_file
   config = YAML.load(File.open(config_file)).with_indifferent_access 
   set :config, config
 end
@@ -73,7 +73,7 @@ end
 namespace :config do
   desc 'Create deploy config file'
   task :init do
-    if File.exists?(config_file).blank?
+    if File.exist?(config_file).blank?
       app_params = {}
       puts "What is your app name?"
       app_params.store(:common, {})
